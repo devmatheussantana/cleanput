@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+# AUTOR: MATHEUS SANTANA      TEAM: [HAE]       # VERSÃO: 0.1
+# >>>>> RECOMENDADO PARA SISTEMAS DEBIAN E UBUNTU <<<<<
+
+# CONFIGURAÇÃO A SER ADICIONADA NO ARQUIVO DO PULSEAUDIO
+mod1="load-module module-echo-cancel source_name=noiseless"   
+mod2="set-default-source noiseless" 
+
+# CRIA UM APELIDO PARA O COMANDO DE REINICIALIZAÇÃO DO PULSEAUDIO
+alias pk="pulseaudio -k"
+
+# VERIFICA SE O ARQUIVO DE CONFIGURAÇÃO DO PULSEAUDIO EXISTE, CASO EXISTA BUSCA PELAS CONFIGURAÇÕES DE SUPRESSÃO DE RUÍDOS.
+
+if [[ -e "/etc/pulse/default.pa" ]];then
+    if [[ $(grep "$mod1" /etc/pulse/default.pa) == " " && $(grep "$mod2" /etc/pulse/default.pa) == " " ]];then
+        echo -e "$mod1\n$mod2" >> /etc/pulse/default.pa
+        echo -e "Módulos adicionados!"
+        pk;exit
+    fi
+    if [[ $(grep "$mod1" /etc/pulse/default.pa) == " " ]];then
+        echo -e "$mod1" >> /etc/pulse/default.pa
+        echo -e "Adicionado um módulo!"
+        pk;exit
+    elif [[ $(grep "$mod2" /etc/pulse/default.pa) == " " ]];then
+        echo "$mod2" >> /etc/pulse/default.pa
+        echo -e "Adicionado um módulo!"
+        pk;exit
+    else
+        echo -e "\tVocê já tem os módulos de redução de ruídos ativo!"
+        echo "> Abra seu Pulseaudio e busque por uma nova configuração de entrada. <"
+    fi
+# CASO NÃO EXISTA O ARQUIVO DE CONFIGURAÇÃO DO PULSEAUDIO, É SINAL QUE DEVEMOS SEGUIR PARA O PRÓXIMO PASSO, INSTALAR O PULSEAUDIO E O ALSA.
+else
+    echo -n "Deseja instalar o Pulseaudio? [s/n]:  "; read opt
+    if [[ $opt == "s" || $opt == "S" ]];then
+        apt install pulseaudio alsamixer -y >> /dev/null
+        service pulseaudio start
+        echo "Instalado com sucesso!"
+    else
+        echo "Não é possível fazer a configuração sem instalar as dependências!"
+    fi
+fi
